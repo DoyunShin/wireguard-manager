@@ -26,6 +26,10 @@ WG_DNS = ""
 
 def load_config():
     global configPath
+
+    if not configPath.exists():
+        raise FileNotFoundError("Config file not found.\n> data/config.json")
+
     data = json.loads(configPath.read_text())
     for key, value in data.items():
         globals()[key] = value

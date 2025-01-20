@@ -14,6 +14,6 @@ RUN pip install -U pip wheel setuptools && \
 COPY . .
 
 EXPOSE 5000
-EXPOSE 58000/udp
+EXPOSE 51820/udp
 
 CMD ["python", "app.py"]

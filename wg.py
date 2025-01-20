@@ -5,9 +5,10 @@ import settings
 from cryptography.hazmat.primitives.asymmetric import x25519
 from cryptography.hazmat.primitives import serialization
 from pathlib import Path
-import json
 import ipaddress
 import random
+import base64
+import json
 
 class WireguardPair:
     user: str
@@ -75,8 +76,8 @@ def load_config():
         newkey = x25519.X25519PrivateKey.generate()
         data = {
             "server": {
-                "private_key": newkey.private_bytes(encoding=serialization.Encoding.Base64, format=serialization.PrivateFormat.Raw, encryption_algorithm=serialization.NoEncryption()).decode(),
-                "public_key": newkey.public_key().public_bytes(encoding=serialization.Encoding.Base64, format=serialization.PublicFormat.Raw).decode(),
+                "private_key": base64.b64encode(newkey.private_bytes(encoding=serialization.Encoding.Raw, format=serialization.PrivateFormat.Raw, encryption_algorithm=serialization.NoEncryption())).decode(),
+                "public_key": base64.b64encode(newkey.public_key().public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)).decode(),
             },
             "clients": []
         }
@@ -188,14 +189,13 @@ def _get_host_ip(cidr) -> str:
     return f"{ipaddr.network_address + 1}/{ipaddr.prefixlen}"
 
 def generate_wireguard_pair(user: str, cidr: str) -> WireguardPair:
-    private_key = x25519.X25519PrivateKey.generate()
-    public_key = private_key.public_key()
+    key = x25519.X25519PrivateKey.generate()
     preshared_key = x25519.X25519PrivateKey.generate()
     return WireguardPair(
         user=user,
-        private_key=private_key.private_bytes(encoding=serialization.Encoding.Base64, format=serialization.PrivateFormat.Raw, encryption_algorithm=serialization.NoEncryption()).decode(),
-        public_key=public_key.public_bytes(encoding=serialization.Encoding.Base64, format=serialization.PublicFormat.Raw).decode(),
-        preshared_key=preshared_key.private_bytes(encoding=serialization.Encoding.Base64, format=serialization.PrivateFormat.Raw, encryption_algorithm=serialization.NoEncryption()).decode(),
+        private_key=base64.b64encode(key.private_bytes(encoding=serialization.Encoding.Raw, format=serialization.PrivateFormat.Raw, encryption_algorithm=serialization.NoEncryption())).decode(),
+        public_key=base64.b64encode(key.public_key().public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)).decode(),
+        preshared_key=base64.b64encode(preshared_key.private_bytes(encoding=serialization.Encoding.Raw, format=serialization.PrivateFormat.Raw, encryption_algorithm=serialization.NoEncryption())).decode(),
         ip=_get_random_ip(cidr)
     )
 
