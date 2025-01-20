@@ -171,5 +171,5 @@ cython_debug/
 .pypirc
 
 
-settings.json
+config.json
 wg.json
