@@ -1,4 +1,4 @@
-__all__ = ["load_config", "save_config", "remove_client", "add_client", "generate_wireguard_pair", "generate_wireguard_config"]
+__all__ = ["load_config", "save_config", "remove_client", "add_client", "generate_wireguard_pair", "generate_wireguard_config", "get_wireguard_list"]
 
 import settings
 
@@ -16,6 +16,20 @@ class WireguardPair:
     preshared_key: str
     ip: str
 
+    def to_dict(self):
+        return {
+            "private_key": self.private_key,
+            "public_key": self.public_key,
+            "addresses": self.addresses,
+            "allowed_ips": self.allowed_ips,
+            "server_dns": self.server_dns,
+            "server_port": self.server_port,
+            "persistent_keepalive": self.persistent_keepalive
+        }
+    
+    def to_json(self):
+        return json.dumps(self.to_dict(), indent=4)
+
 class ServerWGConfig:
     private_key: str
     public_key: str
@@ -24,6 +38,9 @@ class ServerWGConfig:
     server_dns: str
     server_port: int
     persistent_keepalive: int
+
+    
+
 
 configPath = Path('data/wg.json')
 server = ServerWGConfig()
@@ -95,15 +112,10 @@ def save_config():
     }
 
     for client in clients:
-        data["clients"].append({
-            "user": client.user,
-            "private_key": client.private_key,
-            "public_key": client.public_key,
-            "preshared_key": client.preshared_key,
-            "ip": client.ip,
-        })
+        data["clients"].append(client.to_dict())
 
     configPath.write_text(json.dumps(data, indent=4))
+    _save_wg_config()
 
 def _save_wg_config():
     global server, clients
@@ -141,6 +153,7 @@ def remove_client(user: str, ip: str) -> bool:
         return False
     
     clients = [client for client in clients if not (client.user == user and client.ip == ip)]
+    save_config()
     return True
 
 def add_client(wgClient: WireguardPair) -> bool:
@@ -152,6 +165,7 @@ def add_client(wgClient: WireguardPair) -> bool:
         return False
     
     clients.append(wgClient)
+    save_config()
     return True
 
 
@@ -185,16 +199,27 @@ def generate_wireguard_pair(user: str, cidr: str) -> WireguardPair:
         ip=_get_random_ip(cidr)
     )
 
-def generate_wireguard_config(wgClient: WireguardPair, wgServer: ServerWGConfig) -> str:
+def generate_wireguard_config(user: str, ip: str) -> str:
+    global server
+
+    if not _is_ip_user_exists(user, ip):
+        return None
+    
+    wgClient = next(client for client in clients if client.user == user and client.ip == ip)
+
     return f"""[Interface]
 PrivateKey = {wgClient.private_key}
 Address = {wgClient.ip}/32
-{f'DNS = {wgServer.dns}' if wgServer.dns else ''}
+{f'DNS = {server.dns}' if server.dns else ''}
 
 [Peer]
-PublicKey = {wgServer.public_key}
+PublicKey = {server.public_key}
 PresharedKey = {wgClient.preshared_key}
-AllowedIPs = {wgServer.addresses}, {" ,".join(wgServer.allowed_ips)}
-Endpoint = {wgServer.server_dns}:{wgServer.server_port}
-PersistentKeepalive = {wgServer.persistent_keepalive}
+AllowedIPs = {server.addresses}, {" ,".join(server.allowed_ips)}
+Endpoint = {server.server_dns}:{server.server_port}
+PersistentKeepalive = {server.persistent_keepalive}
 """
+
+def get_wireguard_list(user: str) -> list[dict]:
+    global clients
+    return [client.to_dict() for client in clients if client.user == user]

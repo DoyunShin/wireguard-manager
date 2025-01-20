@@ -95,10 +95,82 @@ def wg_get_list():
     """
     if not check_logged_in():
         return jsonify({"status": 403, "message": "Forbidden"}), 403
+
+    user = session['email']
+
+    return jsonify(wg.get_wireguard_list(user))
     
+@app.route('/wg/get_config', methods=['GET'])
+def wg_get_config():
+    """
+    Get WireGuard configuration
 
+    Requires: Logged in
 
+    Args:
+        address (str): Peer address
+
+    Returns:
+        dict: WireGuard configuration
+    
+    """
+    if not check_logged_in():
+        return jsonify({"status": 403, "message": "Forbidden"}), 403
+
+    user = session['email']
+    address = request.args.get('address')
+
+    return wg.generate_wireguard_config(user, address)
+
+@app.route('/wg/add', methods=['POST'])
+def wg_add():
+    """
+    Add WireGuard peer
+
+    Requires: Logged in
+
+    Returns:
+        None (client need to reload the page)
+    
+    """
+    if not check_logged_in():
+        return jsonify({"status": 403, "message": "Forbidden"}), 403
+
+    user = session['email']
+
+    wgpair = wg.generate_wireguard_pair(user)
+    if wg.add_client(wgpair):
+        return jsonify({"status": 200, "message": "OK"})
+    else:
+        return jsonify({"status": 500, "message": "Internal Server Error. Server might have conflicted ip with generated ip"}), 500
+
+@app.route('/wg/remove', methods=['POST'])
+def wg_remove():
+    """
+    Remove WireGuard peer
+
+    Requires: Logged in
+
+    Args:
+        address (str): Peer address
+
+    Returns:
+        None (client need to reload the page)
+    
+    """
+    if not check_logged_in():
+        return jsonify({"status": 403, "message": "Forbidden"}), 403
+
+    user = session['email']
+    address = request.args.get('address')
+
+    if wg.remove_client(user, address):
+        return jsonify({"status": 200, "message": "OK"})
+    else:
+        return jsonify({"status": 404, "message": "Associated Addess Not Found"}), 404
 
 if __name__ == "__main__":
-    settings.load_config(Path('data/config.json'))
-    wg.load_config(Path('data/wg.json'))
+    settings.load_config()
+    wg.load_config()
+
+    app.run(host="0.0.0.0", port=5000, debug=settings.DEBUG, threaded=True)

@@ -1,6 +1,8 @@
 from pathlib import Path
 import json
 
+configPath = Path("data/config.json")
+
 DEBUG = False
 
 SERVER_DOMAIN = "vpn.example.com"
@@ -22,7 +24,8 @@ WG_DNS = ""
 
 
 
-def load_config(configPath: Path):
+def load_config():
+    global configPath
     data = json.loads(configPath.read_text())
     for key, value in data.items():
         globals()[key] = value
