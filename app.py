@@ -172,5 +172,6 @@ def wg_remove():
 if __name__ == "__main__":
     settings.load_config()
     wg.load_config()
+    wg.start()
 
     app.run(host="0.0.0.0", port=5000, debug=settings.DEBUG, threaded=True)

@@ -2,6 +2,8 @@ FROM python:3.12-slim
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     apt-get install -y --no-install-recommends wireguard-tools iptables iproute2 && \
+    apt-get clean all && \
+    rm -rf /var/lib/apt/lists/* && \
     mkdir /app
 
 WORKDIR /app

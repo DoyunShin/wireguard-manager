@@ -1,4 +1,4 @@
-__all__ = ["load_config", "save_config", "remove_client", "add_client", "generate_wireguard_pair", "generate_wireguard_config", "get_wireguard_list"]
+__all__ = ["load_config", "save_config", "remove_client", "add_client", "generate_wireguard_pair", "generate_wireguard_config", "get_wireguard_list", "start", "stop", "reload"]
 
 import settings
 
@@ -9,8 +9,10 @@ import ipaddress
 import random
 import base64
 import json
+import os
 
 class WireguardPair:
+    name: str
     user: str
     private_key: str
     public_key: str
@@ -19,13 +21,12 @@ class WireguardPair:
 
     def to_dict(self):
         return {
+            "name": self.name,
+            "user": self.user,
             "private_key": self.private_key,
             "public_key": self.public_key,
-            "addresses": self.addresses,
-            "allowed_ips": self.allowed_ips,
-            "server_dns": self.server_dns,
-            "server_port": self.server_port,
-            "persistent_keepalive": self.persistent_keepalive
+            "preshared_key": self.preshared_key,
+            "ip": self.ip
         }
     
     def to_json(self):
@@ -39,8 +40,6 @@ class ServerWGConfig:
     server_dns: str
     server_port: int
     persistent_keepalive: int
-
-    
 
 
 configPath = Path('data/wg.json')
@@ -103,6 +102,10 @@ def load_config():
         pair.ip = client["ip"]
         clients.append(pair)
 
+    Path('/data/postup.sh').touch()
+    Path('/data/predown.sh').touch()
+    Path('/data/postdown.sh').touch()
+
 def save_config():
     data = {
         "server": {
@@ -128,9 +131,9 @@ PrivateKey = {server.private_key}
 Address = {_get_host_ip(settings.WG_ADDRESSES)}
 ListenPort = {settings.WG_SERVER_PORT}
 MTU = 1450
-PostUp = 
-PreDown = 
-PostDown = 
+PostUp = /data/postup.sh
+PreDown = /data/predown.sh
+PostDown = /data/postdown.sh
 Table = auto
 
 
@@ -146,6 +149,7 @@ PersistentKeepalive = {server.persistent_keepalive}
 """
     
     wgconfPath.write_text(data)
+    reload()
 
 def remove_client(user: str, ip: str) -> bool:
     global clients
@@ -169,6 +173,9 @@ def add_client(wgClient: WireguardPair) -> bool:
     save_config()
     return True
 
+def user_config_count(user: str) -> int:
+    global clients
+    return len([client for client in clients if client.user == user])
 
 def _is_ip_user_exists(user: str, ip: str) -> bool:
     global clients
@@ -188,16 +195,28 @@ def _get_host_ip(cidr) -> str:
     ipaddr = ipaddress.IPv4Network(cidr)
     return f"{ipaddr.network_address + 1}/{ipaddr.prefixlen}"
 
-def generate_wireguard_pair(user: str, cidr: str) -> WireguardPair:
+def generate_wireguard_pair(user: str, cidr: str, wgname: str = None) -> WireguardPair:
     key = x25519.X25519PrivateKey.generate()
     preshared_key = x25519.X25519PrivateKey.generate()
     return WireguardPair(
+        name=wgname,
         user=user,
         private_key=base64.b64encode(key.private_bytes(encoding=serialization.Encoding.Raw, format=serialization.PrivateFormat.Raw, encryption_algorithm=serialization.NoEncryption())).decode(),
         public_key=base64.b64encode(key.public_key().public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)).decode(),
         preshared_key=base64.b64encode(preshared_key.private_bytes(encoding=serialization.Encoding.Raw, format=serialization.PrivateFormat.Raw, encryption_algorithm=serialization.NoEncryption())).decode(),
         ip=_get_random_ip(cidr)
     )
+
+def fix_wireguard_pair(user: str, ip: str, wgname: str = None) -> None:
+    global clients
+
+    if not _is_ip_user_exists(user, ip):
+        return None
+    
+    wgClient = next(client for client in clients if client.user == user and client.ip == ip)
+    wgClient.name = wgname
+    
+    save_config()
 
 def generate_wireguard_config(user: str, ip: str) -> str:
     global server
@@ -223,3 +242,14 @@ PersistentKeepalive = {server.persistent_keepalive}
 def get_wireguard_list(user: str) -> list[dict]:
     global clients
     return [client.to_dict() for client in clients if client.user == user]
+
+
+def start():
+    _save_wg_config()
+    os.system("wg-quick up wg0")
+
+def stop():
+    os.system("wg-quick down wg0")
+
+def reload():
+    os.system("wg syncconf wg0 <(wg-quick strip wg0)")
