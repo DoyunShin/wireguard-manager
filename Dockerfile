@@ -18,4 +18,4 @@ COPY . .
 EXPOSE 5000
 EXPOSE 51820/udp
 
-CMD ["python3", "app.py"]
+CMD ["python3", "app.py", "-s"]

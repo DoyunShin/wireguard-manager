@@ -1,5 +1,6 @@
 flask
 flask_cors
+requests
 cryptography
 google-api-python-client
 google-auth-httplib2

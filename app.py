@@ -236,7 +236,7 @@ def wg_edit():
     else:
         return jsonify({"status": 404, "message": "Associated Addess Not Found"}), 404
 
-@app.route('/test', methods=['GET'])
+@app.route('/reload', methods=['GET'])
 def test():
     wg.load_config()
     wg.reload()
@@ -267,8 +267,14 @@ if __name__ == "__main__":
         if not wgconfpath.exists():
             raise FileNotFoundError("Config file not found.\n> data/wg.json")
         
+        settings.configPath = confpath
+        wg.rootDataPath = confdir
+        wg.configPath = wgconfpath
+        wg.CONSOLE = True
         settings.load_config()
         wg.load_config()
+
+        apiport = input("API Port: ")
 
         while True:
             print(f"Now User: {user}")
@@ -280,18 +286,26 @@ if __name__ == "__main__":
                 print("5. Remove WireGuard")
                 print("6. Edit WireGuard")
                 print("7. Show WireGuard Config")
-            print("8. Exit")
+            print("8. Reload")
+            print("9. Exit")
             choice = input("> ")
-
-            matched = False
 
             match choice:
                 case "1":
                     users = wg.list_users()
+                    print("==== Users ====")
                     print("\n".join(users))
+                    print("===============")
+                    continue
                 case "2":
                     user = input("Enter user email: ")
+                    print()
+                    continue
                 case "8":
+                    import requests
+                    print(requests.get(f"http://localhost:{apiport}/reload").json())
+                    continue
+                case "9":
                     exit(0)
 
             if user:
@@ -319,7 +333,7 @@ if __name__ == "__main__":
                         else:
                             print("Failed to edit peer")
                     case "7":
-                        ipid = input("Enter ID: ")
+                        ipid = int(input("Enter ID: "))
                         print(wg.generate_wireguard_config(user, ipid))
                     case _:
                         print("Invalid choice")

@@ -17,6 +17,14 @@ class WireguardPair:
     public_key: str
     preshared_key: str
 
+    def __init__(self, id: int, name: str, user: str, private_key: str, public_key: str, preshared_key: str):
+        self.id = id
+        self.name = name
+        self.user = user
+        self.private_key = private_key
+        self.public_key = public_key
+        self.preshared_key = preshared_key
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -40,10 +48,11 @@ class ServerWGConfig:
     server_port: int
     persistent_keepalive: int
 
-
-configPath = Path('data/wg.json')
+rootDataPath = Path('/app/data')
+configPath = rootDataPath / 'wg.json'
 server = ServerWGConfig()
 clients: list[WireguardPair] = []
+CONSOLE = False
 
 def load_config():
     """
@@ -70,7 +79,7 @@ def load_config():
     }
     
     """
-    global configPath, server, clients
+    global rootPath, configPath, server, clients
 
     if not configPath.exists():
         newkey = x25519.X25519PrivateKey.generate()
@@ -109,9 +118,15 @@ def load_config():
             preshared_key=client["preshared_key"]
         ))
 
-    Path('/app/data/postup.sh').touch()
-    Path('/app/data/predown.sh').touch()
-    Path('/app/data/postdown.sh').touch()
+    if not Path(f'{rootDataPath}/postup.sh').exists():
+        Path(f'{rootDataPath}/postup.sh').touch()
+        Path(f'{rootDataPath}/postup.sh').chmod(0o755)
+    if not Path(f'{rootDataPath}/predown.sh').exists():
+        Path(f'{rootDataPath}/predown.sh').touch()
+        Path(f'{rootDataPath}/predown.sh').chmod(0o755)
+    if not Path(f'{rootDataPath}/postdown.sh').exists():
+        Path(f'{rootDataPath}/postdown.sh').touch()
+        Path(f'{rootDataPath}/postdown.sh').chmod(0o755)
 
 def save_config():
     data = {
@@ -155,7 +170,6 @@ PersistentKeepalive = {server.persistent_keepalive}
 """
     
     wgconfPath.write_text(data)
-    reload()
 
 def remove_client(user: str, ipid: str) -> bool:
     global clients
@@ -165,20 +179,20 @@ def remove_client(user: str, ipid: str) -> bool:
     
     clients = [client for client in clients if not (client.user == user and client.id == ipid)]
     save_config()
-    reload()
+    if not CONSOLE: reload()
     return True
 
 def add_client(wgClient: WireguardPair) -> bool:
-    global clients
+    global clients, CONSOLE
     
     if _is_id_exists(wgClient.id):
         return False
     if _is_id_user_exists(wgClient.user, wgClient.id):
         return False
-    
+    print(wgClient.to_json())
     clients.append(wgClient)
     save_config()
-    reload()
+    if not CONSOLE: reload()
     return True
 
 def user_config_count(user: str) -> int:
@@ -207,7 +221,7 @@ def _is_id_exists(id: int) -> bool:
     global clients
     return any(client.id == id for client in clients)
 
-def _get_random_id(cidr: str) -> str:
+def _get_random_id(cidr: str) -> int:
     while True:
         ipid = random.randint(int(ipaddress.IPv4Network(cidr).network_address) + 2, int(ipaddress.IPv4Network(cidr).broadcast_address) - 1)
         if not _is_id_exists(ipid):
@@ -223,7 +237,7 @@ def _get_host_ip(cidr) -> str:
 def generate_wireguard_pair(user: str, wgname: str = None) -> WireguardPair:
     key = x25519.X25519PrivateKey.generate()
     preshared_key = x25519.X25519PrivateKey.generate()
-    ipid = _get_random_id(settings.WG_ADDRESSES),
+    ipid = _get_random_id(settings.WG_ADDRESSES)
     return WireguardPair(
         id=ipid,
         name=wgname,
@@ -256,8 +270,7 @@ def generate_wireguard_config(user: str, ipid: str) -> str:
     return f"""[Interface]
 PrivateKey = {wgClient.private_key}
 Address = {convert_id_to_ip(wgClient.id)}/32
-{f'DNS = {server.dns}' if server.dns else ''}
-
+{f'DNS = {settings.WG_DNS}\n' if settings.WG_DNS else ''}
 [Peer]
 PublicKey = {server.public_key}
 PresharedKey = {wgClient.preshared_key}
@@ -287,14 +300,15 @@ def get_wireguard_list(user: str) -> list[dict]:
 
 def start():
     _save_wg_config()
-    os.system("wg-quick up wg0")
+    os.system("bash -c 'wg-quick up wg0'")
 
 def stop():
-    os.system("wg-quick down wg0")
+    os.system("bash -c 'wg-quick down wg0'")
 
 def reload():
     _save_wg_config()
-    os.system("wg syncconf wg0 <(wg-quick strip wg0)")
+    # os.system("wg syncconf wg0 <(wg-quick strip wg0)")
+    os.system("bash -c 'wg syncconf wg0 <(wg-quick strip wg0)'")
 
 def list_users():
     global clients
