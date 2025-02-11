@@ -1,8 +1,12 @@
 <script lang="ts">
   import * as wg from "$lib/wireguard";
   import Configuration from "./Configuration.svelte";
+  import DeleteModal from "./DeleteModal.svelte";
 
   let configurations = $state(wg.fetchConfigurations());
+  let selectedConfiguration: number | undefined = $state();
+
+  let isDeleteModalOpen = $state(false);
 </script>
 
 <svelte:head>
@@ -25,9 +29,16 @@
       <p class="text-lg">Loading...</p>
     {:then configurations}
       {#if configurations?.length}
-        <ul class="space-y-2">
-          {#each configurations as { name, ip }}
-            <Configuration {name} {ip} />
+        <ul class="flex flex-col gap-y-2">
+          {#each configurations as { id, name, ip }}
+            <Configuration
+              {name}
+              {ip}
+              onDeleteClick={() => {
+                selectedConfiguration = id;
+                isDeleteModalOpen = true;
+              }}
+            />
           {/each}
         </ul>
       {:else}
@@ -36,3 +47,11 @@
     {/await}
   </section>
 </main>
+
+<DeleteModal
+  bind:isOpen={isDeleteModalOpen}
+  onConfirm={async () => {
+    await wg.deleteConfiguration(selectedConfiguration!);
+    configurations = wg.fetchConfigurations();
+  }}
+/>
