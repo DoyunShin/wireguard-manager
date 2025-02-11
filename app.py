@@ -90,6 +90,27 @@ def google_auth_callback():
     else:
         return jsonify({"status": 403, "message": "Forbidden"}), 403
 
+@app.route('/auth/logout', methods=['GET'])
+def logout():
+    if 'email' in session:
+        session.pop('email')
+        session.pop('idinfo')
+        session.pop('login_time')
+        session.pop('act_time')
+    return redirect("/")
+
+@app.route('/auth/debug/login', methods=['GET'])
+def debug():
+    if settings.DEBUG:
+        if 'email' not in session:
+            session['email'] = request.args.get('email', 'test@example.com')
+            session['idinfo'] = {}
+            session['login_time'] = time.time()
+            session['act_time'] = time.time()
+        return redirect(request.args.get('redirect', '/'))
+    else:
+        return jsonify({"status": 403, "message": "Forbidden"}), 403
+
 @app.route('/profile', methods=['GET'])
 def profile():
     """

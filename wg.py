@@ -274,7 +274,7 @@ Address = {convert_id_to_ip(wgClient.id)}/32
 [Peer]
 PublicKey = {server.public_key}
 PresharedKey = {wgClient.preshared_key}
-AllowedIPs = {server.addresses}, {" ,".join(server.allowed_ips)}
+AllowedIPs = {server.addresses}, {", ".join(server.allowed_ips)}
 Endpoint = {server.server_dns}:{server.server_port}
 PersistentKeepalive = {server.persistent_keepalive}
 """
