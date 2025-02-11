@@ -14,13 +14,16 @@ services:
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
       - net.ipv4.ip_forward=1
+    networks:
+      inside
     restart: always
 
 networks:
-  outside:
+  inside:
     driver: macvlan
     driver_opts:
-      parent: enp0s25
+      parent: eth0
     ipam:
       config:
-        - subnet:
+        - subnet: "192.168.0.0/24"
+          gateway: "192.168.0.254"
