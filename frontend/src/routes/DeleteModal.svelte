@@ -5,9 +5,10 @@
   interface Props {
     isOpen: boolean;
     onConfirm: () => void;
+    name?: string;
   }
 
-  let { isOpen = $bindable(), onConfirm }: Props = $props();
+  let { isOpen = $bindable(), onConfirm, name }: Props = $props();
 </script>
 
 <Modal bind:isOpen class="space-y-4 p-4">
