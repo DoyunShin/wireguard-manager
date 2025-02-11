@@ -257,24 +257,25 @@ if __name__ == "__main__":
         app.run(host="0.0.0.0", port=5000, debug=settings.DEBUG, threaded=True)
     elif args.config:
         user = None
-        confdir = Path(input("RootConfigPath: "))
-        confpath = confdir / "config.json"
-        wgconfpath = confdir / "wg.json"
-        if not confdir.exists():
-            raise FileNotFoundError("Config file not found.\n> data/")
-        if not confpath.exists():
-            raise FileNotFoundError("Config file not found.\n> data/config.json")
-        if not wgconfpath.exists():
-            raise FileNotFoundError("Config file not found.\n> data/wg.json")
+        # confdir = Path(input("RootConfigPath: "))
+        # confpath = confdir / "config.json"
+        # wgconfpath = confdir / "wg.json"
+        # if not confdir.exists():
+        #     raise FileNotFoundError("Config file not found.\n> data/")
+        # if not confpath.exists():
+        #     raise FileNotFoundError("Config file not found.\n> data/config.json")
+        # if not wgconfpath.exists():
+        #     raise FileNotFoundError("Config file not found.\n> data/wg.json")
         
-        settings.configPath = confpath
-        wg.rootDataPath = confdir
-        wg.configPath = wgconfpath
+        # settings.configPath = confpath
+        # wg.rootDataPath = confdir
+        # wg.configPath = wgconfpath
         wg.CONSOLE = True
         settings.load_config()
         wg.load_config()
 
-        apiport = input("API Port: ")
+        apiport = 5000
+        # apiport = input("API Port: ")
 
         while True:
             print(f"Now User: {user}")
