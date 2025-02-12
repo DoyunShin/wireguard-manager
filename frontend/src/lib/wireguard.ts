@@ -33,3 +33,17 @@ export const createConfiguration = async (name?: string) => {
   });
   return res.ok;
 };
+
+export const downloadConfiguration = async ({ id, name }: { id: number; name: string }) => {
+  const res = await fetch(`/api/wg/download?id=${id}`);
+  if (!res.ok) return null;
+
+  const contentDisposition = res.headers.get("Content-Disposition") || "";
+  const filename =
+    contentDisposition.match(/filename\*=(?:UTF-8'')?([^;]+)/) ||
+    contentDisposition.match(/filename=([^;]+)/);
+  return {
+    filename: filename ? decodeURIComponent(filename[1].trim()) : `${name}.conf`,
+    blob: await res.blob()
+  };
+};

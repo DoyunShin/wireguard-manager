@@ -20,7 +20,7 @@
     class="fixed inset-0 z-10 flex items-center justify-center bg-black/50"
     transition:fade={{ duration: 100 }}
   >
-    <div class="w-fit max-w-screen-xl min-w-xs p-4">
+    <div class="w-fit max-w-screen-xl min-w-sm p-4">
       <div onclick={(e) => e.stopPropagation()} class={["rounded-2xl bg-white", className]}>
         {@render children()}
       </div>

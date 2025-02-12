@@ -1,16 +1,20 @@
 <script lang="ts">
+  import FileSaver from "file-saver";
   import Button from "$lib/Button.svelte";
   import * as wg from "$lib/wireguard";
   import Configuration from "./Configuration.svelte";
   import DeleteModal from "./DeleteModal.svelte";
   import NewModal from "./NewModal.svelte";
+  import QrCodeModal from "./QrCodeModal.svelte";
 
   import IconAdd from "~icons/material-symbols/add";
 
   let configurations = $state(wg.fetchConfigurations());
   let selectedConfiguration: wg.Configuration | undefined = $state();
+  let selectedBlob: Blob | undefined = $state();
 
   let isNewModalOpen = $state(false);
+  let isQrCodeModalOpen = $state(false);
   let isDeleteModalOpen = $state(false);
 
   const refreshConfigurations = () => {
@@ -50,6 +54,21 @@
             <Configuration
               name={configuration.name}
               ip={configuration.ip}
+              onQrCodeClick={async () => {
+                selectedBlob = undefined;
+                isQrCodeModalOpen = true;
+
+                const res = await wg.downloadConfiguration(configuration);
+                if (res) {
+                  selectedBlob = res.blob;
+                }
+              }}
+              onDownloadClick={async () => {
+                const res = await wg.downloadConfiguration(configuration);
+                if (res) {
+                  FileSaver.saveAs(res.blob, res.filename);
+                }
+              }}
               onDeleteClick={() => {
                 selectedConfiguration = configuration;
                 isDeleteModalOpen = true;
@@ -71,7 +90,7 @@
     refreshConfigurations();
   }}
 />
-
+<QrCodeModal bind:isOpen={isQrCodeModalOpen} blob={selectedBlob} />
 <DeleteModal
   bind:isOpen={isDeleteModalOpen}
   name={selectedConfiguration?.name}

@@ -8,10 +8,12 @@
   interface Props {
     name: string;
     ip: string;
+    onQrCodeClick: () => void;
+    onDownloadClick: () => void;
     onDeleteClick: () => void;
   }
 
-  let { name, ip, onDeleteClick }: Props = $props();
+  let { name, ip, onQrCodeClick, onDownloadClick, onDeleteClick }: Props = $props();
 </script>
 
 <li class="flex items-center justify-between gap-x-2 p-2">
@@ -30,8 +32,8 @@
       </button>
     {/snippet}
 
-    {@render button(IconQrCode2)}
-    {@render button(IconDownload)}
+    {@render button(IconQrCode2, onQrCodeClick)}
+    {@render button(IconDownload, onDownloadClick)}
     {@render button(IconDeleteOutline, onDeleteClick)}
   </div>
 </li>
