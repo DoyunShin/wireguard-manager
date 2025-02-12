@@ -167,7 +167,7 @@ def wg_config():
         return jsonify({"status": 403, "message": "Forbidden"}), 403
 
     user = session['email']
-    ipid = request.args.get('id')
+    ipid = int(request.args.get('id'))
 
     wgconfig = wg.generate_wireguard_config(user, ipid)
 
@@ -176,7 +176,7 @@ def wg_config():
 
     config_file = BytesIO(wgconfig.encode('utf-8'))
     config_file.seek(0)
-    return send_file(config_file, as_attachment=True, attachment_filename=f"{wg.get_wireguard_name(user, ipid)}.conf", mimetype='text/plain')
+    return send_file(config_file, as_attachment=True, download_name=f"{wg.get_wireguard_name(user, ipid)}.conf", mimetype='text/plain')
 
 @app.route('/wg/add', methods=['POST'])
 def wg_add():

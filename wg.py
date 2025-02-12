@@ -259,7 +259,7 @@ def fix_wireguard_pair(user: str, ipid: str, wgname: str = None) -> bool:
     save_config()
     return True
 
-def generate_wireguard_config(user: str, ipid: str) -> str:
+def generate_wireguard_config(user: str, ipid: int) -> str:
     global server
 
     if not _is_id_user_exists(user, ipid):
@@ -279,7 +279,7 @@ Endpoint = {server.server_dns}:{server.server_port}
 PersistentKeepalive = {server.persistent_keepalive}
 """
 
-def get_wireguard_name(user: str, ipid: str) -> str:
+def get_wireguard_name(user: str, ipid: int) -> str:
     global clients
 
     if not _is_id_user_exists(user, ipid):
