@@ -1,5 +1,6 @@
 <script lang="ts">
   import FileSaver from "file-saver";
+  import { goto } from "$app/navigation";
   import Button from "$lib/Button.svelte";
   import * as wg from "$lib/wireguard";
   import Configuration from "./Configuration.svelte";
@@ -7,6 +8,7 @@
   import NewModal from "./NewModal.svelte";
   import QrCodeModal from "./QrCodeModal.svelte";
 
+  import IconLogout from "~icons/material-symbols/logout";
   import IconAdd from "~icons/material-symbols/add";
 
   let configurations = $state(wg.fetchConfigurations());
@@ -17,8 +19,8 @@
   let isQrCodeModalOpen = $state(false);
   let isDeleteModalOpen = $state(false);
 
-  const refreshConfigurations = () => {
-    configurations = wg.fetchConfigurations();
+  const refreshConfigurations = async () => {
+    configurations = Promise.resolve(await wg.fetchConfigurations());
   };
 </script>
 
@@ -28,7 +30,14 @@
 
 <header class="flex items-center justify-between py-4 lg:py-6">
   <h1 class="text-2xl font-semibold lg:text-4xl">WireGuard Manager</h1>
-  <button>Logout</button>
+  <Button
+    color="gray"
+    onclick={() => goto("/api/auth/logout")}
+    class="flex items-center gap-x-1.5 text-sm lg:text-base"
+  >
+    <IconLogout />
+    <span>Logout</span>
+  </Button>
 </header>
 
 <main class="rounded-2xl bg-white shadow-xl">
@@ -45,8 +54,11 @@
   </section>
   <hr class="border-t border-gray-200" />
   <section class="p-4 lg:p-6">
-    {#await configurations}
-      <p class="text-lg">Loading...</p>
+    {#await configurations.then(async (res) => {
+      if (res) return res;
+      else await goto("/api/auth/google");
+    })}
+      <p>Loading...</p>
     {:then configurations}
       {#if configurations?.length}
         <ul class="flex flex-col gap-y-2">
@@ -87,7 +99,7 @@
   bind:isOpen={isNewModalOpen}
   onConfirm={async (name) => {
     await wg.createConfiguration(name);
-    refreshConfigurations();
+    await refreshConfigurations();
   }}
 />
 <QrCodeModal bind:isOpen={isQrCodeModalOpen} blob={selectedBlob} />
@@ -96,6 +108,6 @@
   name={selectedConfiguration?.name}
   onConfirm={async () => {
     await wg.deleteConfiguration(selectedConfiguration!.id);
-    refreshConfigurations();
+    await refreshConfigurations();
   }}
 />
