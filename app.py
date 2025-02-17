@@ -268,16 +268,19 @@ def test():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="WireGuard Manager")
+    parser.add_argument('-w', '--wgsave', action='store_true', help="Save WireGuard Manager config")
     parser.add_argument('-s', '--server', action='store_true', help="Start the WireGuard Manager server")
     parser.add_argument('-c', '--config', action='store_true', help="Open Config Manager")
 
     args = parser.parse_args()
+    settings.load_config()
+    wg.load_config()
+    wg.start()
 
-    if args.server:
-        settings.load_config()
-        wg.load_config()
-        wg.start()
-
+    if args.wgsave:
+        print("Saving WireGuard Manager config")
+        wg.reload()
+    elif args.server:
         app.run(host="0.0.0.0", port=5000, debug=settings.DEBUG, threaded=True)
     elif args.config:
         user = None
