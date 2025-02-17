@@ -193,7 +193,8 @@ def wg_add():
         return jsonify({"status": 403, "message": "Forbidden"}), 403
 
     user = session['email']
-    name = request.json.get('name', None)
+    name = request.json.get('name', '')
+    name = "".join([c for c in name if c.isalnum()])
 
     wgpair = wg.generate_wireguard_pair(user, name)
     if wg.add_client(wgpair):
