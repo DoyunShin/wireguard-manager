@@ -149,7 +149,7 @@ def _save_wg_config():
     data = f"""[Interface]
 PrivateKey = {server.private_key}
 Address = {_get_host_ip(settings.WG_ADDRESSES)}
-ListenPort = {settings.WG_SERVER_PORT}
+ListenPort = 51820
 MTU = 1450
 PostUp = /app/data/postup.sh
 PreDown = /app/data/predown.sh
