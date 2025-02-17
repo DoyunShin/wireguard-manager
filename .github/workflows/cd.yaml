@@ -30,7 +30,7 @@ jobs:
       
       - name: Get latest image from registry
         id: get_latest_image
-        run: docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest || true
+        run: docker pull $(echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" | tr '[:upper:]' '[:lower:]') || true
 
       - name: Get metadata
         id: metadata
