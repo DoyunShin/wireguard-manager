@@ -176,3 +176,4 @@ wg.json
 postdown.sh
 postup.sh
 predown.sh
+compose.yaml

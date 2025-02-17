@@ -295,7 +295,7 @@ if __name__ == "__main__":
         settings.load_config()
         wg.load_config()
 
-        apiport = 5000
+        apiport = 80
         # apiport = input("API Port: ")
 
         while True:
@@ -325,7 +325,7 @@ if __name__ == "__main__":
                     continue
                 case "8":
                     import requests
-                    print(requests.get(f"http://localhost:{apiport}/reload").json())
+                    print(requests.get(f"http://localhost:{apiport}/api/reload").json())
                     continue
                 case "9":
                     exit(0)
@@ -361,3 +361,7 @@ if __name__ == "__main__":
                         print("Invalid choice")
             else:
                 print("Invalid choice")
+else:
+    settings.load_config()
+    wg.load_config()
+    wg.start()
