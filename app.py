@@ -259,6 +259,8 @@ def wg_edit():
 
 @app.route('/reload', methods=['GET'])
 def test():
+    if request.remote_addr != "127.0.0.1":
+        return jsonify({"status": 403, "message": "Forbidden"}), 403
     wg.load_config()
     wg.reload()
     return jsonify({"status": 200, "message": "OK"})
