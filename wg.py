@@ -52,7 +52,6 @@ rootDataPath = Path('/app/data')
 configPath = rootDataPath / 'wg.json'
 server = ServerWGConfig()
 clients: list[WireguardPair] = []
-CONSOLE = False
 
 def load_config():
     """
@@ -179,20 +178,20 @@ def remove_client(user: str, ipid: str) -> bool:
     
     clients = [client for client in clients if not (client.user == user and client.id == ipid)]
     save_config()
-    if not CONSOLE: reload()
+    reload()
     return True
 
 def add_client(wgClient: WireguardPair) -> bool:
-    global clients, CONSOLE
+    global clients
     
     if _is_id_exists(wgClient.id):
         return False
     if _is_id_user_exists(wgClient.user, wgClient.id):
         return False
-    print(wgClient.to_json())
+    
     clients.append(wgClient)
     save_config()
-    if not CONSOLE: reload()
+    reload()
     return True
 
 def user_config_count(user: str) -> int:
@@ -257,6 +256,7 @@ def fix_wireguard_pair(user: str, ipid: str, wgname: str = None) -> bool:
     wgClient.name = wgname
     
     save_config()
+    reload()
     return True
 
 def generate_wireguard_config(user: str, ipid: int) -> str:

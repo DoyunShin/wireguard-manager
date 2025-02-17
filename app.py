@@ -167,7 +167,7 @@ def wg_config():
         return jsonify({"status": 403, "message": "Forbidden"}), 403
 
     user = session['email']
-    ipid = int(request.args.get('id'))
+    ipid = int(request.args.get('id', 0))
 
     wgconfig = wg.generate_wireguard_config(user, ipid)
 
@@ -293,11 +293,9 @@ if __name__ == "__main__":
         # settings.configPath = confpath
         # wg.rootDataPath = confdir
         # wg.configPath = wgconfpath
-        wg.CONSOLE = True
         settings.load_config()
         wg.load_config()
 
-        apiport = 80
         # apiport = input("API Port: ")
 
         while True:
@@ -326,8 +324,8 @@ if __name__ == "__main__":
                     print()
                     continue
                 case "8":
-                    import requests
-                    print(requests.get(f"http://localhost:{apiport}/api/reload").json())
+                    wg.save_config()
+                    wg.reload()
                     continue
                 case "9":
                     exit(0)
