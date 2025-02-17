@@ -21,7 +21,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
-      - name: Set up QEMU
+      - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to Container registry
@@ -31,9 +31,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
-      # - name: Get latest image from registry
-      #   id: get_latest_image
-      #   run: docker pull $(echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" | tr '[:upper:]' '[:lower:]') || true
+      - name: Get latest image from registry
+        id: get_latest_image
+        run: docker pull $(echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" | tr '[:upper:]' '[:lower:]') || true
 
       - name: Get metadata
         id: metadata
