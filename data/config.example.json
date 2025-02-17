@@ -4,7 +4,7 @@
     "SECRET_KEY": "00000000000000000000000000000000",
     "LOGIN_TIME": 3600,
     "FLOW_TIME": 180,
-    "GOOGLE_CALLBACK_URL": "/api/auth/callback",
+    "BASE_URL": "https://vpn.example.com/api",
     "GOOGLE_CLIENT_SECRET": {},
     "ALLOWED_EMAILS": [],
     "ALLOWED_DOMAINS": [],
