@@ -27,6 +27,10 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Get latest image from registry
+        id: get_latest_image
+        run: docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest || true
 
       - name: Get metadata
         id: metadata
