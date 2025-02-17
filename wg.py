@@ -300,15 +300,15 @@ def get_wireguard_list(user: str) -> list[dict]:
 
 def start():
     _save_wg_config()
-    os.system("bash -c 'wg-quick up wg0'")
+    os.system("sudo bash -c 'wg-quick up wg0'")
 
 def stop():
-    os.system("bash -c 'wg-quick down wg0'")
+    os.system("sudo bash -c 'wg-quick down wg0'")
 
 def reload():
     _save_wg_config()
     # os.system("wg syncconf wg0 <(wg-quick strip wg0)")
-    os.system("bash -c 'wg syncconf wg0 <(wg-quick strip wg0)'")
+    os.system("sudo bash -c 'wg syncconf wg0 <(wg-quick strip wg0)'")
 
 def list_users():
     global clients
