@@ -176,7 +176,7 @@ def wg_config():
 
     config_file = BytesIO(wgconfig.encode('utf-8'))
     config_file.seek(0)
-    return send_file(config_file, as_attachment=True, download_name=f"{wg.get_wireguard_name(user, ipid)}.conf", mimetype='text/plain')
+    return send_file(config_file, as_attachment=True, download_name=f"{wg.get_wireguard_name(user, ipid)[:32]}.conf", mimetype='text/plain')
 
 @app.route('/wg/add', methods=['POST'])
 def wg_add():
@@ -194,7 +194,7 @@ def wg_add():
 
     user = session['email']
     name = request.json.get('name', '')
-    name = "".join([c for c in name if c.isalnum()])
+    name = wg.fix_name(name)
 
     wgpair = wg.generate_wireguard_pair(user, name)
     if wg.add_client(wgpair):
@@ -250,6 +250,7 @@ def wg_edit():
     user = session['email']
     ipid = request.json.get('id')
     name = request.json.get('name', None)
+    name = wg.fix_name(name)
 
     if not ipid:
         return jsonify({"status": 400, "message": "ID is required"}), 400

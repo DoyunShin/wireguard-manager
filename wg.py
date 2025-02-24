@@ -297,6 +297,14 @@ def get_wireguard_list(user: str) -> list[dict]:
     global clients
     return [client.to_dict() for client in clients if client.user == user]
 
+def fix_name(name: str) -> str:
+    name = name.replace(' ', '_')
+    name = "".join([c for c in name if c.isalnum() or c in '-_+.'])
+    return name
+
+def list_users():
+    global clients
+    return list(set(client.user for client in clients))
 
 def start():
     _save_wg_config()
@@ -311,7 +319,3 @@ def reload():
     # os.system("wg syncconf wg0 <(wg-quick strip wg0)")
     print("Reloading WireGuard configuration")
     os.system("sudo bash -c 'wg syncconf wg0 <(wg-quick strip wg0)'")
-
-def list_users():
-    global clients
-    return list(set(client.user for client in clients))
