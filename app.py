@@ -83,7 +83,7 @@ def google_auth_callback():
 
     if email in settings.ALLOWED_EMAILS or email.split('@')[-1] in settings.ALLOWED_DOMAINS:
         session['email'] = email
-        session['idinfo'] = idinfo
+        session['picture'] = idinfo.get('picture')
         session['login_time'] = time.time()
         session['act_time'] = time.time()
         return redirect(session.pop('redirect', '/'))
@@ -94,7 +94,8 @@ def google_auth_callback():
 def logout():
     if 'email' in session:
         session.pop('email')
-        session.pop('idinfo')
+        # session.pop('idinfo')
+        session.pop('picture')
         session.pop('login_time')
         session.pop('act_time')
     return redirect("/")
