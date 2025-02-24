@@ -283,9 +283,11 @@ def get_wireguard_name(user: str, ipid: int) -> str:
     global clients
 
     if not _is_id_user_exists(user, ipid):
-        return None
+        raise ValueError("User and IP ID not found")
     
-    return next(client.name for client in clients if client.user == user and client.id == ipid)
+    name = next(client.name for client in clients if client.user == user and client.id == ipid)
+    if not name:
+        return f"{user.split("@")[0]}_{ipid}"
 
 def get_wireguard_list(user: str) -> list[dict]:
     """
