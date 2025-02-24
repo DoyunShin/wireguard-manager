@@ -299,7 +299,7 @@ def get_wireguard_list(user: str) -> list[dict]:
 
 def fix_name(name: str) -> str:
     name = name.replace(' ', '_')
-    name = "".join([c for c in name if c.isalnum() or c in '-_+.'])
+    name = "".join([c for c in name if c.isascii() and (c.isalnum() or c in '-_+.')])
     return name
 
 def list_users():
