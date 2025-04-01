@@ -289,6 +289,8 @@ def get_wireguard_name(user: str, ipid: int) -> str:
     if not name:
         return f"{user.split("@")[0]}_{ipid}"
 
+    return name
+
 def get_wireguard_list(user: str) -> list[dict]:
     """
     Get WireGuard list

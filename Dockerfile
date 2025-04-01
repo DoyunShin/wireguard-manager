@@ -61,6 +61,8 @@ COPY .docker/apache.conf /usr/local/apache2/conf/sites/default.conf
 COPY .docker/entrypoint.sh /entrypoint.sh
 COPY . .
 
+RUN sudo chown -R wgvpn:wgvpn /app
+
 EXPOSE 80
 EXPOSE 51820/udp
 
